@@ -1,0 +1,75 @@
+ption>
+      <rdf:Description rdf:about=""
+            xmlns:aux="http://ns.adobe.com/exif/1.0/aux/">
+         <aux:SerialNumber>042033006980</aux:SerialNumber>
+         <aux:LensInfo>85/1 85/1 0/0 0/0</aux:LensInfo>
+         <aux:Lens>EF85mm f/1.2L USM</aux:Lens>
+         <aux:LensID>137</aux:LensID>
+         <aux:LensSerialNumber>0000000000</aux:LensSerialNumber>
+         <aux:ImageNumber>0</aux:ImageNumber>
+         <aux:FlashCompensation>0/1</aux:FlashCompensation>
+         <aux:Firmware>1.1.2</aux:Firmware>
+      </rdf:Description>
+      <rdf:Description rdf:about=""
+            xmlns:xapMM="http://ns.adobe.com/xap/1.0/mm/"
+            xmlns:stEvt="http://ns.adobe.com/xap/1.0/sType/ResourceEvent#"
+            xmlns:stRef="http://ns.adobe.com/xap/1.0/sType/ResourceRef#">
+         <xapMM:DocumentID>xmp.did:04801174072068118C14CE7E3767F72E</xapMM:DocumentID>
+         <xapMM:OriginalDocumentID>AC9AC87776A008C3E75716280DA45E36</xapMM:OriginalDocumentID>
+         <xapMM:InstanceID>xmp.iid:0580117407206811B53AE759B5B776AF</xapMM:InstanceID>
+         <xapMM:History>
+            <rdf:Seq>
+               <rdf:li rdf:parseType="Resource">
+                  <stEvt:action>derived</stEvt:action>
+                  <stEvt:parameters>converted from image/x-canon-cr2 to image/tiff</stEvt:parameters>
+               </rdf:li>
+               <rdf:li rdf:parseType="Resource">
+                  <stEvt:action>saved</stEvt:action>
+                  <stEvt:instanceID>xmp.iid:04801174072068118C14CE7E3767F72E</stEvt:instanceID>
+                  <stEvt:when>2013-01-17T18:28:53-05:00</stEvt:when>
+                  <stEvt:softwareAgent>Adobe Photoshop Camera Raw 6.7 (Macintosh)</stEvt:softwareAgent>
+                  <stEvt:changed>/</stEvt:changed>
+               </rdf:li>
+               <rdf:li rdf:parseType="Resource">
+                  <stEvt:action>saved</stEvt:action>
+                  <stEvt:instanceID>xmp.iid:0480117407206811B53AE759B5B776AF</stEvt:instanceID>
+                  <stEvt:when>2013-01-17T18:43:06-05:00</stEvt:when>
+                  <stEvt:softwareAgent>Adobe Photoshop CS5 Macintosh</stEvt:softwareAgent>
+                  <stEvt:changed>/</stEvt:changed>
+               </rdf:li>
+               <rdf:li rdf:parseType="Resource">
+                  <stEvt:action>converted</stEvt:action>
+                  <stEvt:parameters>from image/tiff to image/jpeg</stEvt:parameters>
+               </rdf:li>
+               <rdf:li rdf:parseType="Resource">
+                  <stEvt:action>derived</stEvt:action>
+                  <stEvt:parameters>converted from image/tiff to image/jpeg</stEvt:parameters>
+               </rdf:li>
+               <rdf:li rdf:parseType="Resource">
+                  <stEvt:action>saved</stEvt:action>
+                  <stEvt:instanceID>xmp.iid:0580117407206811B53AE759B5B776AF</stEvt:instanceID>
+                  <stEvt:when>2013-01-17T18:43:06-05:00</stEvt:when>
+                  <stEvt:softwareAgent>Adobe Photoshop CS5 Macintosh</stEvt:softwareAgent>
+                  <stEvt:changed>/</stEvt:changed>
+               </rdf:li>
+            </rdf:Seq>
+         </xapMM:History>
+         <xapMM:DerivedFrom rdf:parseType="Resource">
+            <stRef:instanceID>xmp.iid:0480117407206811B53AE759B5B776AF</stRef:instanceID>
+            <stRef:documentID>xmp.did:04801174072068118C14CE7E3767F72E</stRef:documentID>
+            <stRef:originalDocumentID>AC9AC87776A008C3E75716280DA45E36</stRef:originalDocumentID>
+         </xapMM:DerivedFrom>
+      </rdf:Description>
+      <rdf:Description rdf:about=""
+            xmlns:crs="http://ns.adobe.com/camera-raw-settings/1.0/">
+         <crs:RawFileName>P120612PS-0463.CR2</crs:RawFileName>
+         <crs:Version>6.7</crs:Version>
+         <crs:ProcessVersion>5.7</crs:ProcessVersion>
+         <crs:WhiteBalance>Custom</crs:WhiteBalance>
+         <crs:Temperature>4250</crs:Temperature>
+         <crs:Tint>-5</crs:Tint>
+         <crs:Exposure>+0.45</crs:Exposure>
+         <crs:Shadows>5</crs:Shadows>
+         <crs:Brightness>+50</crs:Brightness>
+         <crs:Contrast>+25</crs:Contrast>
+    
