@@ -8,6 +8,7 @@ import java.io.RandomAccessFile;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Vector;
 
@@ -29,34 +30,37 @@ public class ChunkServer extends Thread implements ChunkServerInterface {
 	private static ObjectOutputStream oos;
 	private static ObjectInputStream ois;
 	
+	// Fix
 	public static int PayloadSize = Integer.SIZE/Byte.SIZE;
-	public static int CommandSize = Integer.SIZE/Byte.SIZE; //size of each command code
+	public static int CommandSize = Integer.SIZE/Byte.SIZE;
 	
-	// Random
-	public static final int initCode = 100;
-	public static final int putCode = 101;
-	public static final int getCode = 102;
+	// Based on TA's design
+	public static final int initOp = 100;
+	public static final int putOp = 101;
+	public static final int getOp = 102;
 	
 	/**
 	 * Initialize the chunk server
 	 */
 	public ChunkServer(){
-		File[] files = (new File(filePath)).listFiles();
-		if (files == null || files.length == 0) {
+		File dir = new File(filePath);
+		File[] fs = dir.listFiles();
+		
+		if (fs == null || fs.length == 0) {
 			counter = 0;
-		}
-		else { //in case of deleted files, we need to make sure a new file is the next sequential one
-			Vector<Long> filenames = new Vector<Long>();
-			for (File f: files) {
-				if (isNumeric(f.getName())) //for hidden files such as .DS_Store on Mac 
-					filenames.add(Long.valueOf(f.getName()));
+		} else {
+			long[] cntrs = new long[fs.length];
+			for (int j=0; j < cntrs.length; j++) {
+				cntrs[j] = Long.valueOf( fs[j].getName() ); 
 			}
 			
-			if (filenames.size() == 0)
+			Arrays.sort(cntrs);
+			counter = cntrs[cntrs.length - 1];
+			if (cntrs.length == 0) {
 				counter = 0;
-			else {
-				Collections.sort(filenames);
-				counter = filenames.lastElement();
+			} else {
+				Arrays.sort(cntrs);
+				counter = cntrs[cntrs.length - 1];
 			}
 		}
 		
@@ -78,27 +82,25 @@ public class ChunkServer extends Thread implements ChunkServerInterface {
 				
 				while (true) {
 					int payloadLength = readInt(ois);
+					// -1 indication to break, no need to do anything else
 					if (payloadLength == -1)
-						// We don't need to do anything!
 						break;
+					// Now, read "opcode"
 					int opNum = readInt(ois);
-					if (opNum == initCode) {
+					if (opNum == initOp) {
 						runInit();
-					}
-					else if (opNum == putCode) {
+					} else if (opNum == putOp) {
 						runPut(payloadLength);
-					}
-					else if (opNum == getCode) {
+					} else if (opNum == getOp) {
 						runGet(payloadLength);
 					}
-				}
-			     
+				}     
 			} catch (Exception e) {
 				e.printStackTrace();
 				break;
 			} finally {
 				try {
-					if (s!=null)
+					if (s != null)
 						s.close();
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -107,22 +109,21 @@ public class ChunkServer extends Thread implements ChunkServerInterface {
 		}
 	}
 	
+	// Handles initializeChunk
 	private void runInit() {
 		String chunk = initializeChunk();
-		byte[] chunkHandlePayload = chunk.getBytes();
+		byte[] chunkHandlePacket = chunk.getBytes();
 		try {
-			oos.writeInt(chunkHandlePayload.length);
+			oos.writeInt(chunkHandlePacket.length);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
-		try {
-			oos.write(chunkHandlePayload);
+		} try {
+			oos.write(chunkHandlePacket);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
-		try {
+		} try {
 			oos.flush();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -130,42 +131,49 @@ public class ChunkServer extends Thread implements ChunkServerInterface {
 		}
 	}
 	
+	// Handles putChunk
 	private void runPut(int payloadLength) {
 		int offset = readInt(ois);
-		int payloadsize = readInt(ois);
-		byte[] payload = receivePayload(ois, payloadsize);
-		int chunksize = payloadLength-ChunkServer.PayloadSize-ChunkServer.CommandSize-8-payloadsize;
-		byte[] chunkHandlePayload = receivePayload(ois, chunksize);
-		String chunk = new String(chunkHandlePayload);
-		if (putChunk(chunk, payload, offset))
+		int payloadSize = readInt(ois);
+		int chunkSize = (payloadLength)-(ChunkServer.PayloadSize)-(ChunkServer.CommandSize)-(payloadSize)-(2*4);
+		
+		byte[] payload = receivePayload(ois, payloadSize);
+		byte[] chunkHandlePacket = receivePayload(ois, chunkSize);
+		
+		String chunk = new String(chunkHandlePacket);
+		
+		if (putChunk(chunk, payload, offset)) {
 			try {
 				oos.writeInt(1);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-		else
+		} else {
 			try {
 				oos.writeInt(0);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+		}
+		
 		try {
 			oos.flush();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
 	}
 
-	
+	// Handles getChunk
 	private void runGet(int payloadLength) {
 		int offset = readInt(ois);
 		int payloadsize = readInt(ois);
 		int chunksize = payloadLength-ChunkServer.PayloadSize-ChunkServer.CommandSize-8;
-		byte[] chunkHandlePayload = receivePayload(ois, chunksize);
-		String chunk = new String(chunkHandlePayload);	
+		byte[] chunkHandlePacket = receivePayload(ois, chunksize);
+		String chunk = new String(chunkHandlePacket);	
 		
 		byte[] output = getChunk(chunk, offset, payloadsize);
 		if (output == null)
@@ -219,6 +227,8 @@ public class ChunkServer extends Thread implements ChunkServerInterface {
 	/**
 	 * Write the byte array to the chunk at the offset
 	 * The byte array size should be no greater than 4KB
+	 * 
+	 * Not changed
 	 */
 	public boolean putChunk(String ChunkHandle, byte[] payload, int offset) {
 		try {
@@ -235,7 +245,9 @@ public class ChunkServer extends Thread implements ChunkServerInterface {
 	}
 	
 	/**
-	 * read the chunk at the specific offset
+	 * Read the chunk at the specific offset
+	 * 
+	 * Not changed
 	 */
 	public byte[] getChunk(String ChunkHandle, int offset, int NumberOfBytes) {
 		try {
@@ -256,6 +268,7 @@ public class ChunkServer extends Thread implements ChunkServerInterface {
 		}
 	}
 	
+	// Receives payload
 	public static byte[] receivePayload(ObjectInputStream in, int size) {
 		byte[] tmp = new byte[size];
 		byte[] buffer = new byte[size];

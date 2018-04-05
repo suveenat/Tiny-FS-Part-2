@@ -43,7 +43,7 @@ public class Client implements ClientInterface {
 	public String initializeChunk() {
 		try {
 			oos.writeInt(ChunkServer.CommandSize);
-			oos.writeInt(ChunkServer.initCode);
+			oos.writeInt(ChunkServer.initOp);
 			oos.flush();
 						
 			int chunkSize = readInt(ois);
@@ -71,7 +71,7 @@ public class Client implements ClientInterface {
 		try {
 			byte[] chunkHandlePayload = ChunkHandle.getBytes();
 			oos.writeInt(ChunkServer.PayloadSize+ChunkServer.CommandSize+4+4+payload.length+chunkHandlePayload.length);
-			oos.writeInt(ChunkServer.putCode);
+			oos.writeInt(ChunkServer.putOp);
 			oos.writeInt(offset);
 			oos.writeInt(payload.length);
 			oos.write(payload);
@@ -99,7 +99,7 @@ public class Client implements ClientInterface {
 		try {
 			byte[] chunkHandlePayload = ChunkHandle.getBytes();
 			oos.writeInt(ChunkServer.PayloadSize+ChunkServer.CommandSize+4+4+chunkHandlePayload.length);
-			oos.writeInt(ChunkServer.getCode);
+			oos.writeInt(ChunkServer.getOp);
 			oos.writeInt(offset);
 			oos.writeInt(NumberOfBytes);
 			oos.write(chunkHandlePayload);
