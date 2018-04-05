@@ -137,8 +137,8 @@ public class ChunkServer extends Thread implements ChunkServerInterface {
 		int payloadSize = readInt(ois);
 		int chunkSize = (payloadLength)-(ChunkServer.PayloadSize)-(ChunkServer.CommandSize)-(payloadSize)-(2*4);
 		
-		byte[] payload = receivePayload(ois, payloadSize);
-		byte[] chunkHandlePacket = receivePayload(ois, chunkSize);
+		byte[] payload = parsePayload(ois, payloadSize);
+		byte[] chunkHandlePacket = parsePayload(ois, chunkSize);
 		
 		String chunk = new String(chunkHandlePacket);
 		
@@ -170,12 +170,13 @@ public class ChunkServer extends Thread implements ChunkServerInterface {
 	// Handles getChunk
 	private void runGet(int payloadLength) {
 		int offset = readInt(ois);
-		int payloadsize = readInt(ois);
-		int chunksize = payloadLength-ChunkServer.PayloadSize-ChunkServer.CommandSize-8;
-		byte[] chunkHandlePacket = receivePayload(ois, chunksize);
-		String chunk = new String(chunkHandlePacket);	
+		int payloadSize = readInt(ois);
+		int chunkSize = (payloadLength)-(ChunkServer.PayloadSize)-(ChunkServer.CommandSize)-(2*4);
 		
-		byte[] output = getChunk(chunk, offset, payloadsize);
+		byte[] chunkHandlePacket = parsePayload(ois, chunkSize);
+		String chunk = new String(chunkHandlePacket);	
+		byte[] output = getChunk(chunk, offset, payloadSize);
+		
 		if (output == null)
 			try {
 				oos.writeInt(ChunkServer.PayloadSize);
@@ -203,16 +204,6 @@ public class ChunkServer extends Thread implements ChunkServerInterface {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	}
-
-
-	private boolean isNumeric(String s) {  
-		try {
-			Long l = Long.valueOf(s);
-		} catch (NumberFormatException e) {
-			return false;
-		}
-		return true;		
 	}
 	
 	/**
@@ -268,18 +259,18 @@ public class ChunkServer extends Thread implements ChunkServerInterface {
 		}
 	}
 	
-	// Receives payload
-	public static byte[] receivePayload(ObjectInputStream in, int size) {
-		byte[] tmp = new byte[size];
+	// Parses payload -- modified from https://stackoverflow.com/questions/2183240/java-integer-to-byte-array
+	public static byte[] parsePayload(ObjectInputStream ois, int size) {
+		byte[] tempBuff = new byte[size];
 		byte[] buffer = new byte[size];
-		int bytes = 0;
+		int numBytes = 0;
 		
-		while (bytes != size) {
-			int counter=-1;
+		while (numBytes != size) {
+			int counter = -1;
 			try {
-				counter = in.read(tmp, 0, (size-bytes)); //read in a payload carefully
+				counter = ois.read(tempBuff, 0, (size-numBytes));
 				for (int j=0; j < counter; j++){
-					buffer[bytes+j]=tmp[j];
+					buffer[numBytes+j]=tempBuff[j];
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -287,22 +278,21 @@ public class ChunkServer extends Thread implements ChunkServerInterface {
 			}
 			if (counter == -1) {
 				return null;
-			}
-			else { 
-				bytes += counter;	
+			} else { 
+				numBytes += counter;	
 			}
 		} 
 		return buffer;
 	}
 	
 	// Modified from https://stackoverflow.com/questions/17455787/how-to-use-wrap-method-of-bytebuffer-in-java
-	public static int readInt(ObjectInputStream oin) {
-		byte[] buffer = receivePayload(oin, 4);
+	public static int readInt(ObjectInputStream ois) {
+		// Previous function, use 4 for size bc int
+		byte[] buffer = parsePayload(ois, 4);
 		ByteBuffer buff = null;
 		if (buffer != null) {
 			buff = ByteBuffer.wrap(buffer);
 			return buff.getInt();
-			//return ByteBuffer.wrap(buffer).getInt();
 		}
 		return -1;
 	}
