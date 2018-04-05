@@ -71,6 +71,11 @@ public class ChunkServer extends Thread implements ChunkServerInterface {
 		}
 	}
 	
+	public static void main(String [] args) {
+		Thread server = new ChunkServer();
+		server.start();
+	}
+	
 	// Modified from https://stackoverflow.com/questions/10962736/opening-read-write-streams-multiple-times-from-a-socket
 	public void run() {
 		Socket s = null;
@@ -297,8 +302,4 @@ public class ChunkServer extends Thread implements ChunkServerInterface {
 		return -1;
 	}
 	
-	public static void main(String [] args) {
-		Thread server = new ChunkServer();
-		server.start();
-	}	
 }

@@ -14,9 +14,9 @@ import com.interfaces.ClientInterface;
  *
  */
 public class Client implements ClientInterface {	
-	private static Socket client;
+	private static Socket cs;
 	private static int portNum = 1234;
-	private static String hostname = "localhost";
+	private static String host = "localhost";
 
 	private static ObjectOutputStream oos;
 	private static ObjectInputStream ois;
@@ -24,14 +24,13 @@ public class Client implements ClientInterface {
 	/**
 	 * Initialize the client
 	 */
-	public Client(){
-		if (client!=null)
+	public Client() {
+		if (cs != null)
 			return;
-		
 		try {
-			client = new Socket(hostname, portNum);	          
-			oos = new ObjectOutputStream(client.getOutputStream());
-			ois = new ObjectInputStream(client.getInputStream());			
+			cs = new Socket(host, portNum);	          
+			oos = new ObjectOutputStream(cs.getOutputStream());
+			ois = new ObjectInputStream(cs.getInputStream());			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -47,12 +46,13 @@ public class Client implements ClientInterface {
 			oos.flush();
 						
 			int chunkSize = readInt(ois);
-			byte[] chunkHandlePayload = receivePayload(ois, chunkSize);
-			return (new String(chunkHandlePayload));
-			
+			byte[] chunkHandlePacket = parsePayload(ois, chunkSize);
+			return (new String(chunkHandlePacket));
+	
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		
 		return null;
 	}
 	
@@ -63,24 +63,30 @@ public class Client implements ClientInterface {
 	 * Write a chunk at the chunk server from the client side.
 	 */
 	public boolean putChunk(String ChunkHandle, byte[] payload, int offset) {
+		// Same as Part 1
 		if(offset + payload.length > ChunkServer.ChunkSize){ // Check size
 			// Make sure the right number of bits are read
 			System.out.println("The chunk write should be within the range of the file, invalide chunk write!");
 			return false;
 		}
+		// New for Part 2
 		try {
-			byte[] chunkHandlePayload = ChunkHandle.getBytes();
-			oos.writeInt(ChunkServer.PayloadSize+ChunkServer.CommandSize+4+4+payload.length+chunkHandlePayload.length);
+			byte[] chunkHandlePacket = ChunkHandle.getBytes();
+			// Part by part, send over
+			oos.writeInt((ChunkServer.PayloadSize)+(ChunkServer.CommandSize)+(payload.length)+(chunkHandlePacket.length)+(2*4));
 			oos.writeInt(ChunkServer.putOp);
 			oos.writeInt(offset);
 			oos.writeInt(payload.length);
 			oos.write(payload);
-			oos.write(chunkHandlePayload);
+			oos.write(chunkHandlePacket);
+			// Then flush out
 			oos.flush();
 			int output = readInt(ois);
-			if (output==0)
+			if (output == 0) {
 				return false;
-			return true;
+			} else {
+				return true;
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -91,38 +97,44 @@ public class Client implements ClientInterface {
 	 * Read a chunk at the chunk server from the client side.
 	 */
 	public byte[] getChunk(String ChunkHandle, int offset, int NumberOfBytes) {
+		// Part 1
 		if(NumberOfBytes + offset > ChunkServer.ChunkSize){
 			System.out.println("The chunk read should be within the range of the file, invalide chunk read!");
 			return null;
-		}
-		//return cs.getChunk(ChunkHandle, offset, NumberOfBytes);
-		try {
-			byte[] chunkHandlePayload = ChunkHandle.getBytes();
-			oos.writeInt(ChunkServer.PayloadSize+ChunkServer.CommandSize+4+4+chunkHandlePayload.length);
+		// New for Part 2
+		} try {
+			byte[] chunkHandlePacket = ChunkHandle.getBytes();
+			// Part by part, send over
+			oos.writeInt((ChunkServer.PayloadSize)+(ChunkServer.CommandSize)+(chunkHandlePacket.length)+(2*4));
 			oos.writeInt(ChunkServer.getOp);
 			oos.writeInt(offset);
 			oos.writeInt(NumberOfBytes);
-			oos.write(chunkHandlePayload);
+			oos.write(chunkHandlePacket);
+			
+			// Flush!
 			oos.flush();
 			int chunkSize = readInt(ois) - ChunkServer.PayloadSize;
-			return receivePayload(ois, chunkSize);
+			return parsePayload(ois, chunkSize);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return null;
 	}
 
-	public static byte[] receivePayload(ObjectInputStream in, int size) {
-		byte[] tmp = new byte[size];
+	/* Parses payload -- modified from https://stackoverflow.com/questions/2183240/java-integer-to-byte-array
+	 * Same implementation as in ChunkServer
+	 */
+	public static byte[] parsePayload(ObjectInputStream ois, int size) {
+		byte[] tempBuff = new byte[size];
 		byte[] buffer = new byte[size];
-		int bytes = 0;
+		int numBytes = 0;
 		
-		while (bytes != size) {
-			int counter=-1;
+		while (numBytes != size) {
+			int counter = -1;
 			try {
-				counter = in.read(tmp, 0, (size-bytes)); //read in a payload carefully
+				counter = ois.read(tempBuff, 0, (size-numBytes));
 				for (int j=0; j < counter; j++){
-					buffer[bytes+j]=tmp[j];
+					buffer[numBytes+j]=tempBuff[j];
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -130,23 +142,24 @@ public class Client implements ClientInterface {
 			}
 			if (counter == -1) {
 				return null;
-			}
-			else { 
-				bytes += counter;	
+			} else { 
+				numBytes += counter;	
 			}
 		} 
 		return buffer;
 	}
 
-	// Modified from https://stackoverflow.com/questions/17455787/how-to-use-wrap-method-of-bytebuffer-in-java
-		public static int readInt(ObjectInputStream oin) {
-			byte[] buffer = receivePayload(oin, 4);
-			ByteBuffer buff = null;
-			if (buffer != null) {
-				buff = ByteBuffer.wrap(buffer);
-				return buff.getInt();
-				//return ByteBuffer.wrap(buffer).getInt();
-			}
-			return -1;
+	/* Modified from https://stackoverflow.com/questions/17455787/how-to-use-wrap-method-of-bytebuffer-in-java
+	 * Same implementation as in ChunkServer
+	 */
+	public static int readInt(ObjectInputStream ois) {
+		// Previous function, use 4 for size bc int
+		byte[] buffer = parsePayload(ois, 4);
+		ByteBuffer buff = null;
+		if (buffer != null) {
+			buff = ByteBuffer.wrap(buffer);
+			return buff.getInt();
 		}
+		return -1;
+	}
 }
