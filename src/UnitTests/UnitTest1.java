@@ -20,7 +20,6 @@ public class UnitTest1 {
 	
 	public static void main(String[] args) {
 		test1();
-		
 	}
 	
 	public static void test1(){
@@ -35,7 +34,7 @@ public class UnitTest1 {
         }
         boolean isSuccess = false;
         //Create the chunk and store its handle
-        Client client = new Client(5656, "localhost");
+        Client client = new Client();
         handle = client.initializeChunk();
         if(handle == null){
         	System.out.println("Unit test 1 result: fail!");
@@ -47,7 +46,6 @@ public class UnitTest1 {
         }else{
         	System.out.println("Unit test 1 result: fail!");
         }
-        client.closeSocket();
 	}
 
 }

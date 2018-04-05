@@ -15,8 +15,8 @@ import com.client.Client;
 
 public class TestReadAndWrite {
 	
-	public static ChunkServer cs = new ChunkServer(5656);
-	public static Client client = new Client(5656, "localhost");
+	public static ChunkServer cs = new ChunkServer();
+	public static Client client = new Client();
 	
 	/**
 	 * Create and write chunk(s) of a physical file.
